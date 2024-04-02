@@ -1,28 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import logo from './assets/logo.svg'
-import './App.css'
-import { Api } from './Api'
 
 function App() {
   const [count, setCount] = useState(0)
-
-  useEffect(() => {
-    const api = new Api()
-    api.execute(
-      'user/upsert',
-      { name: 'Jaroslav', surname: 'Kuboš', hourlyRate: 300 },
-      (res) => {}
-    )
-
-    api.execute(
-      'user/upsert',
-      { name: 'Vítek', surname: 'Kuboš', hourlyRate: 300 },
-      (res) => {}
-    )
-    api.execute('users/list', { fulltext: 'Kuboš' }, (res) => {
-      console.log(res)
-    })
-  }, [])
 
   return (
     <>

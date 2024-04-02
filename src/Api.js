@@ -1,5 +1,5 @@
-import { idParam, userData, usersFilter } from './ApiStructures'
-import { Validator } from './Validator'
+import { idParam, userData } from './ApiStructures'
+import { Validator } from './utils/Validator'
 
 export class Api {
   _users = new Map()
@@ -17,7 +17,7 @@ export class Api {
 
     inputDataKeys.forEach((key) => {
       if (!defKeys.includes(key)) {
-        throw `Received uknown argument '${key}'`
+        throw `Received uknown property '${key}'`
       }
     })
 
@@ -36,7 +36,7 @@ export class Api {
     Validator.arrayOfSize(
       missingArray,
       0,
-      `Could not deserialize class ${structDef.className} because some of required attributes are not set [${missingArray}].`
+      `Could not deserialize class ${structDef.className} because some of required properties are not set [${missingArray}].`
     )
   }
 
@@ -50,7 +50,7 @@ export class Api {
     Validator.isSet(method)
     Validator.isSet(inputData)
     Validator.isSet(callback)
-    return new Promise(() => {
+    return new Promise((resolve, reject) => {
       setTimeout(() => {
         switch (method) {
           case 'user/get':
@@ -58,7 +58,8 @@ export class Api {
             if (!this._users.has(inputData.id)) {
               throw `User with id ${inputData.id} does not exist.`
             }
-            callback(this._users.get(inputData.id))
+            const result = this._users.get(inputData.id)
+            resolve({ data: result })
             break
 
           case 'users/list':
@@ -73,13 +74,13 @@ export class Api {
               id = ++this._lastUserId
             }
             this._users.set(id, inputData)
-            callback(id)
+            resolve({ id })
             break
 
           default:
-            throw `Uknown API method '${apiMehod}'.`
+            throw `API endpoint '${method}' not found.`
         }
       }, 300)
-    })
+    }).then(callback)
   }
 }
