@@ -9,4 +9,4 @@
 ## Stores
 > Store is a class that helps developer to work with specific API in specific part of application.
 
->  In [Navigo](https://navigo3.com/) we have a FormStore which is initialized with a method named as 'some-api-topic/get' to retrieve existing data or 'some-api-topic/default' to get new data, the data is used to populate the form. After the FormStore is initialized, it needs an API method to store the data. We name them 'some-api-topic/upsert'. With this information, FormStore can handle any form you can think of.
+>  In [Navigo](https://navigo3.com/) we have *Store* called *FormStore* which is initialized with a method named as 'some-api-topic/get' to retrieve existing data or 'some-api-topic/default' to get new data, the data is used to populate the form. After the FormStore is initialized, it needs an API method to store the data. We name them 'some-api-topic/upsert'. With this information, FormStore can handle any form you can think of.
