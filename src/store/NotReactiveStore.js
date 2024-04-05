@@ -1,11 +1,13 @@
 import { getAtPath } from "../utils/ObjectUtils"
+import { StoreInterface } from "./StoreInterface"
 
 /**
  * @typedef {(string | number)[]} PropertyPath
 */
 
-export class Store {
+export class NotReactiveStore extends StoreInterface {
   constructor(data) {
+    super()
     /**
       * @type {object}
       * @private
@@ -52,7 +54,7 @@ export class Store {
   }
 
   /**
-   * Method to get deep copy data.
+   * Method to get deep copy of data.
    */
   getData() {
     return structuredClone(this._data)
