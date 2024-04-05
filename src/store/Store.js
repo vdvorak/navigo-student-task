@@ -18,7 +18,6 @@ export class Store {
       * @private
     */
     this._defaultData = structuredClone(data)
-    this.inputs = new Map()
   }
 
   /**
