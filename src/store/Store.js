@@ -1,5 +1,4 @@
-import { canContinueAtPath, getPropertyValueByPath } from "../utils/ObjectUtils"
-import { Validator } from "../utils/Validator"
+import { getAtPath } from "../utils/ObjectUtils"
 
 /**
  * @typedef {(string | number)[]} PropertyPath
@@ -25,7 +24,7 @@ export class Store {
    * @param {PropertyPath} path
    */
   getValue(path) {
-    return getPropertyValueByPath(path, this._data)
+    return getAtPath(path, this._data)
   }
 
 
@@ -34,7 +33,7 @@ export class Store {
 * @param {PropertyPath} path
 */
   getDefaultValue(path) {
-    return getPropertyValueByPath(path, this._defaultData)
+    return getAtPath(path, this._defaultData)
   }
 
 
@@ -44,20 +43,12 @@ export class Store {
    * @param {any} value
    */
   setValue(path, value) {
-    Validator.checkPath(path)
+    const propertyName = path.at(-1)
+    const entryPath = path.slice(0, path.length - 1)
 
-    const lastKey = path.at(-1)
-    const pathWithoutLastKey = path.slice(0, path.length - 1)
+    const entry = getAtPath(entryPath, this._data)
 
-    const propertyData = pathWithoutLastKey.reduce((dataObject, currentKey) => {
-      if (canContinueAtPath(dataObject, currentKey)) {
-        return dataObject[currentKey]
-      }
-
-      return dataObject
-    }, this._data)
-
-    propertyData[lastKey] = value
+    entry[propertyName] = value
   }
 
   /**

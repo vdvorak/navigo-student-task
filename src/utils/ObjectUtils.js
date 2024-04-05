@@ -1,11 +1,11 @@
 import { Validator } from "./Validator"
 
 /**
- * Method to get value from object property.
+ * Method to get property or value from object by path.
  * @param {ObjectPath} path
  * @param {object} data
  */
-export function getPropertyValueByPath(path, data) {
+export function getAtPath(path, data) {
     Validator.checkPath(path)
 
     return path.reduce((dataObject, currentKey) => {
