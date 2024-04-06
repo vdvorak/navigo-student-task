@@ -11,12 +11,6 @@ export class MobxStore {
     this._loaded = false
 
     /**
-     * @type {Number}
-     * @private
-   */
-
-
-    /**
  * @type {boolean}
  * @private
 */
