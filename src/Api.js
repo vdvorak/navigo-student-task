@@ -1,5 +1,5 @@
 import { idParam, userData } from './ApiStructures'
-import { Validator } from './utils/Validator'
+import Validator from './utils/Validator'
 
 export class Api {
   _users = new Map()
