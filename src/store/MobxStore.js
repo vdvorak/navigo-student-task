@@ -1,91 +1,75 @@
-import { makeAutoObservable, observable, toJS } from "mobx"
-import { getAtPath } from "../utils/ObjectUtils"
+import { makeAutoObservable, toJS } from "mobx"
+import { Store } from "./Store"
 
-/**
- * @typedef {(string | number)[]} PropertyPath
-*/
 
 export class MobxStore {
   constructor(data) {
     /**
-      * @type {object}
-      * @private
-    */
-    this._data = structuredClone(data)
+     * @type {boolean}
+     * @private
+   */
+    this._loaded = false
 
     /**
-      * @type {object}
-      * @private
-    */
-    this._defaultData = structuredClone(data)
-    this._loaded = false
+     * @type {Number}
+     * @private
+   */
+
+
+    /**
+ * @type {boolean}
+ * @private
+*/
+    this._isDirty = false
+
+    this._store = new Store(data, (dataProxy) => structuredClone(toJS(dataProxy)))
+
     makeAutoObservable(this)
+    makeAutoObservable(this._store)
+
   }
 
   /**
    * Method to get property value.
-   * @param {PropertyPath} path
+   * @param {import("../typedef").PropertyPath} path
    */
   getValue(path) {
-    return getAtPath(path, this._data)
+    return this._store.getValue(path)
   }
 
 
   /**
 * Method to get property default value.
-* @param {PropertyPath} path
+* @param {import("../typedef").PropertyPath} path
 */
   getDefaultValue(path) {
-    return getAtPath(path, this._defaultData)
+    return this._store.getDefaultValue(path)
   }
 
 
   /**
    * Method to set property value.
-   * @param {PropertyPath} path
+   * @param {import("../typedef").PropertyPath} path
    * @param {any} value
    */
   setValue(path, value) {
-    const propertyName = path.at(-1)
-
-    if (path.length > 1) {
-      const entryPath = path.slice(0, path.length - 1)
-
-      const entry = getAtPath(entryPath, this._data)
-
-      entry[propertyName] = value
-    } else {
-      this._data[propertyName] = value
-    }
+    this._store.setValue(path, value)
   }
 
   /**
-   * Method to get deep copy data.
+   * Method to get deep copy of data.
+   * @returns {object}
    */
   getData() {
-    return structuredClone(toJS(this._data))
+    return this._store.getData()
   }
 
   /**
    * Method to check if value of property is not same as default value.
-   * @param {PropertyPath} path
+   * @param {import("../typedef").PropertyPath} path
    * @returns {boolean}
    */
   isChanged(path) {
-    const value = JSON.stringify(this.getValue(path))
-    const defaultValue = JSON.stringify(this.getDefaultValue(path))
-
-    return value !== defaultValue
-  }
-
-  /**
-   * Method to check if store contains any change.
-   * @returns {boolean}
-   */
-  isDirty() {
-    const data = JSON.stringify(this._data)
-    const defaultData = JSON.stringify(this._defaultData)
-
-    return data !== defaultData
+    return this._store.isChanged(path)
   }
 }

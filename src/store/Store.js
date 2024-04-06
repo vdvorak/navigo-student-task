@@ -1,13 +1,15 @@
 import { getAtPath } from "../utils/ObjectUtils"
-import { StoreInterface } from "./StoreInterface"
+import Validator from "../utils/Validator"
 
-/**
- * @typedef {(string | number)[]} PropertyPath
-*/
+export class Store {
+  /**
+   * 
+   * @param {object} data 
+   */
+  constructor(data, deepCopyFunction = structuredClone) {
+    Validator.isA(data, Object)
+    Validator.isFunctionWithArity(deepCopyFunction, 1)
 
-export class NotReactiveStore extends StoreInterface {
-  constructor(data) {
-    super()
     /**
       * @type {object}
       * @private
@@ -19,11 +21,18 @@ export class NotReactiveStore extends StoreInterface {
       * @private
     */
     this._defaultData = structuredClone(data)
+
+    /**
+    * @type {Function}
+    * @private
+   */
+    this._deepCopyFunction = deepCopyFunction
+
   }
 
   /**
    * Method to get property value.
-   * @param {PropertyPath} path
+   * @param {import("../typedef").PropertyPath} path
    */
   getValue(path) {
     return getAtPath(path, this._data)
@@ -32,7 +41,7 @@ export class NotReactiveStore extends StoreInterface {
 
   /**
 * Method to get property default value.
-* @param {PropertyPath} path
+* @param {import("../typedef").PropertyPath} path
 */
   getDefaultValue(path) {
     return getAtPath(path, this._defaultData)
@@ -41,28 +50,36 @@ export class NotReactiveStore extends StoreInterface {
 
   /**
    * Method to set property value.
-   * @param {PropertyPath} path
+   * @param {import("../typedef").PropertyPath} path
    * @param {any} value
    */
   setValue(path, value) {
     const propertyName = path.at(-1)
-    const entryPath = path.slice(0, path.length - 1)
+    let entry = this._data
 
-    const entry = getAtPath(entryPath, this._data)
+    if (path.length > 1) {
+      const entryPath = path.slice(0, path.length - 1)
+      entry = getAtPath(entryPath, this._data)
+    }
 
-    entry[propertyName] = value
+    const prevValue = this._deepCopyFunction((entry[propertyName]))
+
+    if (JSON.stringify(value) !== JSON.stringify(prevValue)) {
+      entry[propertyName] = value
+    }
   }
 
   /**
    * Method to get deep copy of data.
+   * @returns {object}
    */
   getData() {
-    return structuredClone(this._data)
+    return this._deepCopyFunction((this._data))
   }
 
   /**
    * Method to check if value of property is not same as default value.
-   * @param {PropertyPath} path
+   * @param {import("../typedef").PropertyPath} path
    * @returns {boolean}
    */
   isChanged(path) {
