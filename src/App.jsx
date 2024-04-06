@@ -2,12 +2,15 @@ import logo from './assets/logo.svg'
 import { MobxStore } from './store/MobxStore'
 import { Observer } from 'mobx-react'
 import { users } from './store/Users'
+import { transaction } from 'mobx'
 
 const store = new MobxStore(users)
 function App() {
 
-  console.log(Math.floor(Math.random() * 16777215).toString(16));
 
+  const data = store.getData()
+
+  const keys = Object.keys(data)
 
   return (
     <Observer>
@@ -18,17 +21,13 @@ function App() {
           </a>
         </div>
         <div className="card">
-          <button onClick={() => store.getData().forEach((user, i) => store.setValue([i, "age"], user.age + 1))}>
-            +
+          <button onClick={() => keys.forEach((key) => {
+            console.log("key", key);
+            transaction(() => store.setValue([key], `#${Math.floor(Math.random() * 16777215).toString(16)}`))
+          })}>
+            Přidat projeckt
           </button>
-          &nbsp;
-          &nbsp;
-          &nbsp;
-          <button onClick={() => store.getData().forEach((user, i) => store.setValue([i, "age"], user.age - 1))}>
-            -
-          </button>
-
-          {store.getData().map((user, i) => <h2 style={{ padding: 5, backgroundColor: store.isChanged([i, "age"]) ? `#${Math.floor(Math.random() * 16777215).toString(16)}` : undefined }}>{i}.&nbsp;{user.name} {user.age}</h2>)}
+          {keys.map((key) => <h2 key={key} style={{ padding: 5, backgroundColor: store.isChanged([key]) ? `#${Math.floor(Math.random() * 16777215).toString(16)}` : undefined }}>{key}&nbsp;{store.getValue([key])}</h2>)}
         </div>
       </>}
     </Observer>
