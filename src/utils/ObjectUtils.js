@@ -1,8 +1,8 @@
-import { Validator } from "./Validator"
+import Validator from "./Validator"
 
 /**
- * Method to get property or value from object by path.
- * @param {ObjectPath} path
+ * Function to get property or value from object by path.
+ * @param {import("../typedef").PropertyPath} path
  * @param {object} data
  */
 export function getAtPath(path, data) {
@@ -18,7 +18,7 @@ export function getAtPath(path, data) {
 }
 
 /**
- * Method to check if object is valid and object contains property
+ * Function assuring that object is valid and object contains property
  * @param {(string|number)} propertyKey
  * @param {object} dataObject
  */
