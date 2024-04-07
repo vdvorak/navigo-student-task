@@ -1,4 +1,4 @@
-import { getAtPath } from "../utils/ObjectUtils"
+import { getPropertyValue, setPropertyValue } from "../utils/ObjectUtils"
 import Validator from "../utils/Validator"
 
 export class Store {
@@ -35,7 +35,7 @@ export class Store {
    * @param {import("../typedef").PropertyPath} path
    */
   getValue(path) {
-    return getAtPath(path, this._data)
+    return getPropertyValue(path, this._data)
   }
 
 
@@ -44,7 +44,7 @@ export class Store {
 * @param {import("../typedef").PropertyPath} path
 */
   getDefaultValue(path) {
-    return getAtPath(path, this._defaultData)
+    return getPropertyValue(path, this._defaultData)
   }
 
 
@@ -54,19 +54,7 @@ export class Store {
    * @param {any} value
    */
   setValue(path, value) {
-    const propertyName = path.at(-1)
-    let entry = this._data
-
-    if (path.length > 1) {
-      const entryPath = path.slice(0, path.length - 1)
-      entry = getAtPath(entryPath, this._data)
-    }
-
-    const prevValue = this._deepCopyFunction((entry[propertyName]))
-
-    if (JSON.stringify(value) !== JSON.stringify(prevValue)) {
-      entry[propertyName] = value
-    }
+    setPropertyValue(path, value, this._data)
   }
 
   /**
