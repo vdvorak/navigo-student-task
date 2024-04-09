@@ -32,7 +32,7 @@ function App() {
           <div>
             {keys.map((key) => {
               const color = store.getValue([key])
-              return <div key={key} style={{ fontSize: 24, display: "flex", alignItems: "baseline", justifyContent: "center", padding: 5, verticalAlign: "middle", backgroundColor: store.isChanged([key]) ? `#${color}` : undefined }}><div>{key}&nbsp;#<input style={{ outline: "none", fontSize: 24, background: "transparent", border: "none", borderBottom: "1px solid #212529" }} type="text" value={color} onChange={e => store.setValue([key], e.target.value)} /></div></div>
+              return <div key={key} style={{ fontSize: 24, display: "flex", justifyContent: "center", padding: 5, backgroundColor: store.isChanged([key]) ? `#${color}` : undefined }}>{key}&nbsp;#<input style={{ outline: "none", fontSize: 24, background: "transparent", border: "none", borderBottom: "1px solid #212529" }} type="text" value={color} onChange={e => store.setValue([key], e.target.value)} /></div>
             })}
           </div>
         </div>}
