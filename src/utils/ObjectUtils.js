@@ -32,9 +32,9 @@ export function setPropertyValue(path, value, data) {
         entry = getPropertyValue(entryPath, data)
     }
 
-    const prevValue = this._deepCopyFunction((entry[propertyName]))
+    const prevValue = structuredClone(entry[propertyName])
 
-    if (JSON.stringify(value) !== JSON.stringify(prevValue)) {
+    if (!isEqual(value, prevValue)) {
         entry[propertyName] = value
     }
 }

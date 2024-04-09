@@ -1,4 +1,4 @@
-import { getPropertyValue, setPropertyValue } from "../utils/ObjectUtils"
+import { getPropertyValue, isEqual, setPropertyValue } from "../utils/ObjectUtils"
 import Validator from "../utils/Validator"
 
 export class Store {
@@ -6,7 +6,7 @@ export class Store {
    * 
    * @param {object} data 
    */
-  constructor(data, deepCopyFunction = structuredClone) {
+  constructor(data) {
     Validator.isA(data, Object)
     Validator.isFunctionWithArity(deepCopyFunction, 1)
 
@@ -21,12 +21,6 @@ export class Store {
       * @private
     */
     this._defaultData = structuredClone(data)
-
-    /**
-    * @type {Function}
-    * @private
-   */
-    this._deepCopyFunction = deepCopyFunction
 
   }
 
@@ -62,29 +56,29 @@ export class Store {
    * @returns {object}
    */
   getData() {
-    return this._deepCopyFunction((this._data))
+    return structuredClone((this._data))
   }
 
-  /**
+ /**
    * Method to check if value of property is not same as default value.
    * @param {import("../typedef").PropertyPath} path
    * @returns {boolean}
    */
-  isChanged(path) {
-    const value = JSON.stringify(this.getValue(path))
-    const defaultValue = JSON.stringify(this.getDefaultValue(path))
+ isChanged(path) {
+  const value = JSON.stringify(this.getValue(path))
+  const defaultValue = JSON.stringify(this.getDefaultValue(path))
 
-    return value !== defaultValue
-  }
+  return !isEqual(value, defaultValue)
+}
 
-  /**
-   * Method to check if store contains any change.
-   * @returns {boolean}
-   */
-  isDirty() {
-    const data = JSON.stringify(this._data)
-    const defaultData = JSON.stringify(this._defaultData)
+/**
+ * Method to check if store contains any change.
+ * @returns {boolean}
+ */
+isDirty() {
+  const data = JSON.stringify(this._data)
+  const defaultData = JSON.stringify(this._defaultData)
 
-    return data !== defaultData
-  }
+  return !isEqual(data, defaultData)
+}
 }

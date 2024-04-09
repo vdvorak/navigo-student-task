@@ -1,5 +1,5 @@
 import { makeAutoObservable, toJS } from "mobx"
-import { Store } from "./Store"
+import { getPropertyValue, isEqual, setPropertyValue } from "../utils/ObjectUtils"
 
 
 export class MobxStore {
@@ -16,10 +16,19 @@ export class MobxStore {
 */
     this._isDirty = false
 
-    this._store = new Store(data, (dataProxy) => structuredClone(toJS(dataProxy)))
+     /**
+      * @type {object}
+      * @private
+    */
+     this._data = structuredClone(data)
+
+     /**
+       * @type {object}
+       * @private
+     */
+     this._defaultData = structuredClone(data)
 
     makeAutoObservable(this)
-    makeAutoObservable(this._store)
 
   }
 
@@ -28,7 +37,7 @@ export class MobxStore {
    * @param {import("../typedef").PropertyPath} path
    */
   getValue(path) {
-    return this._store.getValue(path)
+    return getPropertyValue(path, this._data)
   }
 
 
@@ -37,7 +46,7 @@ export class MobxStore {
 * @param {import("../typedef").PropertyPath} path
 */
   getDefaultValue(path) {
-    return this._store.getDefaultValue(path)
+    return getPropertyValue(path, this._defaultData)
   }
 
 
@@ -47,7 +56,7 @@ export class MobxStore {
    * @param {any} value
    */
   setValue(path, value) {
-    this._store.setValue(path, value)
+    setPropertyValue(path, value, this._data)
   }
 
   /**
@@ -55,15 +64,29 @@ export class MobxStore {
    * @returns {object}
    */
   getData() {
-    return this._store.getData()
+    return structuredClone(toJS(this._data))
   }
 
-  /**
+ /**
    * Method to check if value of property is not same as default value.
    * @param {import("../typedef").PropertyPath} path
    * @returns {boolean}
    */
-  isChanged(path) {
-    return this._store.isChanged(path)
-  }
+ isChanged(path) {
+  const value = JSON.stringify(this.getValue(path))
+  const defaultValue = JSON.stringify(this.getDefaultValue(path))
+
+  return !isEqual(value, defaultValue)
+}
+
+/**
+ * Method to check if store contains any change.
+ * @returns {boolean}
+ */
+isDirty() {
+  const data = JSON.stringify(this._data)
+  const defaultData = JSON.stringify(this._defaultData)
+
+  return !isEqual(data, defaultData)
+}
 }
