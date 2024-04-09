@@ -7,14 +7,14 @@ export class Store {
    * @param {object} data 
    */
   constructor(data) {
-    Validator.isA(data, Object)
-    Validator.isFunctionWithArity(deepCopyFunction, 1)
+    Validator.isA(data, object)
 
     /**
       * @type {object}
       * @private
     */
     this._data = structuredClone(data)
+
 
     /**
       * @type {object}
@@ -59,26 +59,26 @@ export class Store {
     return structuredClone((this._data))
   }
 
- /**
-   * Method to check if value of property is not same as default value.
-   * @param {import("../typedef").PropertyPath} path
+  /**
+    * Method to check if value of property is not same as default value.
+    * @param {import("../typedef").PropertyPath} path
+    * @returns {boolean}
+    */
+  isChanged(path) {
+    const value = this.getValue(path)
+    const defaultValue = this.getDefaultValue(path)
+
+    return !isEqual(value, defaultValue)
+  }
+
+  /**
+   * Method to check if store contains any change.
    * @returns {boolean}
    */
- isChanged(path) {
-  const value = JSON.stringify(this.getValue(path))
-  const defaultValue = JSON.stringify(this.getDefaultValue(path))
+  isDirty() {
+    const data = this._data
+    const defaultData = this._defaultData
 
-  return !isEqual(value, defaultValue)
-}
-
-/**
- * Method to check if store contains any change.
- * @returns {boolean}
- */
-isDirty() {
-  const data = JSON.stringify(this._data)
-  const defaultData = JSON.stringify(this._defaultData)
-
-  return !isEqual(data, defaultData)
-}
+    return !isEqual(data, defaultData)
+  }
 }
