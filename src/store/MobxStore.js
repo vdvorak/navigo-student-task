@@ -1,4 +1,4 @@
-import { makeAutoObservable, toJS } from "mobx"
+import { autorun, makeAutoObservable, observable, toJS } from "mobx"
 import { getPropertyValue, isEqual, setPropertyValue } from "../utils/ObjectUtils"
 
 
@@ -11,24 +11,34 @@ export class MobxStore {
     this._loaded = false
 
     /**
+  * @type {boolean}
+  * @private
+*/
+    this._dirty = false
+
+    /**
  * @type {boolean}
  * @private
 */
     this._isDirty = false
 
-     /**
+    /**
+     * @type {object}
+     * @private
+   */
+    this._data = structuredClone(data)
+
+    /**
       * @type {object}
       * @private
     */
-     this._data = structuredClone(data)
+    this._defaultData = structuredClone(data)
 
-     /**
-       * @type {object}
-       * @private
-     */
-     this._defaultData = structuredClone(data)
+    makeAutoObservable(this, { _data: observable, _loaded: observable, _dirty: observable })
 
-    makeAutoObservable(this)
+    setTimeout(() => {
+      this._loaded = true
+    }, 600);
 
   }
 
@@ -57,6 +67,7 @@ export class MobxStore {
    */
   setValue(path, value) {
     setPropertyValue(path, value, this._data)
+    this._checkDirty()
   }
 
   /**
@@ -67,26 +78,35 @@ export class MobxStore {
     return structuredClone(toJS(this._data))
   }
 
- /**
-   * Method to check if value of property is not same as default value.
-   * @param {import("../typedef").PropertyPath} path
+  /**
+    * Method to check if value of property is not same as default value.
+    * @param {import("../typedef").PropertyPath} path
+    * @returns {boolean}
+    */
+  isChanged(path) {
+    const value = this.getValue(path)
+    const defaultValue = this.getDefaultValue(path)
+
+    return !isEqual(value, defaultValue)
+  }
+
+  /**
+   * Method to check if store contains any change.
    * @returns {boolean}
+   * @private
    */
- isChanged(path) {
-  const value = JSON.stringify(this.getValue(path))
-  const defaultValue = JSON.stringify(this.getDefaultValue(path))
+  _checkDirty() {
+    const data = this._data
+    const defaultData = this._defaultData
 
-  return !isEqual(value, defaultValue)
-}
+    this._dirty = !isEqual(data, defaultData)
+  }
 
-/**
- * Method to check if store contains any change.
- * @returns {boolean}
- */
-isDirty() {
-  const data = JSON.stringify(this._data)
-  const defaultData = JSON.stringify(this._defaultData)
+  get isDirty() {
+    return this._dirty
+  }
 
-  return !isEqual(data, defaultData)
-}
+  get isLoaded() {
+    return this._loaded
+  }
 }
