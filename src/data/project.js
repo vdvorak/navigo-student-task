@@ -1,4 +1,4 @@
-export const users = {
+export const project = {
     accountId: 121,
     addressId: null,
     blockReporting: false,

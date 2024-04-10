@@ -67,7 +67,7 @@ export class MobxStore {
    */
   setValue(path, value) {
     setPropertyValue(path, value, this._data)
-    this._checkDirty()
+    this.checkDirty()
   }
 
   /**
@@ -95,7 +95,7 @@ export class MobxStore {
    * @returns {boolean}
    * @private
    */
-  _checkDirty() {
+  checkDirty() {
     const data = this._data
     const defaultData = this._defaultData
 
