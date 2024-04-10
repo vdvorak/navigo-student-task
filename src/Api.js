@@ -60,7 +60,6 @@ class Api {
    * @param {function} callback - Method to execute when API request is finished with API response as parameter.
    */
   execute(method, inputData, callback) {
-    console.log(Array.from(this._methods.keys()))
     Validator.isSet(method)
     Validator.contained(this._methods, method)
     Validator.isSet(inputData)
@@ -73,7 +72,7 @@ class Api {
       setTimeout(() => {
         const result = apiMethod.impl(inputData)
         resolve(result)
-      }, 300)
+      }, 1500)
     }).then(callback)
   }
 }
@@ -152,7 +151,21 @@ API.register(new Endpoint("user/upsert", UserData, IdParam), (data) => {
 API.register(new Endpoint("users/list", UsersFilter, UsersList), (filter) => {
   return database
     .getValue(["users"])
-    .filter((user) => `${user.name} ${user.surname}`.includes(filter.fulltext))
+    .filter(
+      (user) =>
+        !filter.fulltext ||
+        `${user.name} ${user.surname}`.includes(filter.fulltext)
+    )
 })
 
-export default API
+/**
+ * Method for making api requests.
+ * @param {string} apiMethod - Name of API method to call.
+ * @param {object} inputData - Data used as input for called API method.
+ * @param {function} callback - Method to execute when API request is finished with API response as parameter.
+ */
+function apiExec(method, inputData, callback) {
+  API.execute(method, inputData, callback)
+}
+
+export default apiExec
