@@ -1,27 +1,29 @@
-import { getPropertyValue, isEqual, setPropertyValue } from "../utils/ObjectUtils"
+import {
+  getPropertyValue,
+  isEqual,
+  setPropertyValue,
+} from "../utils/ObjectUtils"
 import Validator from "../utils/Validator"
 
 export class Store {
   /**
-   * 
-   * @param {object} data 
+   *
+   * @param {object} data
    */
   constructor(data) {
-    Validator.isA(data, object)
+    Validator.isA(data, Object)
 
     /**
-      * @type {object}
-      * @private
-    */
+     * @type {object}
+     * @private
+     */
     this._data = structuredClone(data)
 
-
     /**
-      * @type {object}
-      * @private
-    */
+     * @type {object}
+     * @private
+     */
     this._defaultData = structuredClone(data)
-
   }
 
   /**
@@ -32,15 +34,13 @@ export class Store {
     return getPropertyValue(path, this._data)
   }
 
-
   /**
-* Method to get property default value.
-* @param {import("../typedef").PropertyPath} path
-*/
+   * Method to get property default value.
+   * @param {import("../typedef").PropertyPath} path
+   */
   getDefaultValue(path) {
     return getPropertyValue(path, this._defaultData)
   }
-
 
   /**
    * Method to set property value.
@@ -56,14 +56,14 @@ export class Store {
    * @returns {object}
    */
   getData() {
-    return structuredClone((this._data))
+    return structuredClone(this._data)
   }
 
   /**
-    * Method to check if value of property is not same as default value.
-    * @param {import("../typedef").PropertyPath} path
-    * @returns {boolean}
-    */
+   * Method to check if value of property is not same as default value.
+   * @param {import("../typedef").PropertyPath} path
+   * @returns {boolean}
+   */
   isChanged(path) {
     const value = this.getValue(path)
     const defaultValue = this.getDefaultValue(path)

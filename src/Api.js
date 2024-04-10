@@ -1,9 +1,22 @@
-import { idParam, userData } from './ApiStructures'
-import Validator from './utils/Validator'
+import { IdParam, UserData, UsersFilter, UsersList } from "./ApiDef"
+import Validator from "./utils/Validator"
+import { Store } from "./store/Store"
+import { createIdsSeq } from "./utils/ObjectUtils"
 
-export class Api {
-  _users = new Map()
-  _lastUserId = 1
+class Api {
+  _methods = new Map()
+
+  /**
+   *
+   * @param {Endpoint} endpoint
+   * @param {function(endpoint.inputType): endpoint.outputType} impl
+   */
+  register(endpoint, impl) {
+    this._methods.set(endpoint.method, {
+      endpoint,
+      impl,
+    })
+  }
 
   /**
    * Method for making api requests.
@@ -23,7 +36,7 @@ export class Api {
 
     defKeys.forEach((key) => {
       if (
-        !key.startsWith('_') &&
+        !key.startsWith("_") &&
         structDef[key] &&
         !inputDataKeys.includes(key)
       ) {
@@ -42,45 +55,104 @@ export class Api {
 
   /**
    * Method for making api requests.
-   * @param {("user/get"|"user/upsert")} apiMethod - Name of API method to call.
+   * @param {string} apiMethod - Name of API method to call.
    * @param {object} inputData - Data used as input for called API method.
    * @param {function} callback - Method to execute when API request is finished with API response as parameter.
    */
   execute(method, inputData, callback) {
+    console.log(Array.from(this._methods.keys()))
     Validator.isSet(method)
+    Validator.contained(this._methods, method)
     Validator.isSet(inputData)
     Validator.isSet(callback)
+
+    const apiMethod = this._methods.get(method)
+    //   this._checkInput(inputData, method.enpoint.inputType)
+
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        switch (method) {
-          case 'user/get':
-            this._checkInput(inputData, idParam)
-            if (!this._users.has(inputData.id)) {
-              throw `User with id ${inputData.id} does not exist.`
-            }
-            const result = this._users.get(inputData.id)
-            resolve({ data: result })
-            break
-
-          case 'users/list':
-            throw 'Not implemented'
-
-          case 'user/upsert':
-            this._checkInput(inputData, userData)
-            let id
-            if (inputData.id) {
-              id = inputData.id
-            } else {
-              id = ++this._lastUserId
-            }
-            this._users.set(id, inputData)
-            resolve({ id })
-            break
-
-          default:
-            throw `API endpoint '${method}' not found.`
-        }
+        const result = apiMethod.impl(inputData)
+        resolve(result)
       }, 300)
     }).then(callback)
   }
 }
+
+export class Endpoint {
+  constructor(method, inputType, outputType) {
+    /**
+     * @type {string}
+     * @private
+     */
+    this._method = method
+    /**
+     * @type {object}
+     * @private
+     */
+    this._inputType = inputType
+    /**
+     * @type {object}
+     * @private
+     */
+    this._outputType = outputType
+  }
+
+  /**
+   * @returns
+   */
+  get method() {
+    return this._method
+  }
+
+  /**
+   * @returns {object} Input data structure def
+   */
+  get inputType() {
+    return this._inputType
+  }
+
+  /**
+   * @returns {object} Output data structure def
+   */
+  get outputType() {
+    return this._outputType
+  }
+}
+
+const API = new Api()
+
+const usersIdSeq = createIdsSeq()
+const database = new Store({
+  users: [],
+})
+
+API.register(new Endpoint("user/get", IdParam, UserData), (id) => {
+  const user = database.getValue(["users"]).find((user) => user.id == id)
+  if (!user) {
+    throw `User with id ${inputData.id} does not exist.`
+  }
+
+  return { data: user }
+})
+
+API.register(new Endpoint("user/upsert", UserData, IdParam), (data) => {
+  const user = structuredClone(data)
+
+  if (!user.id) {
+    user.id = usersIdSeq.next()
+  }
+
+  const users = database.getValue(["users"])
+  users.push(user)
+
+  database.setValue(["users"], users)
+  return { id: user.id }
+})
+
+API.register(new Endpoint("users/list", UsersFilter, UsersList), (filter) => {
+  return database
+    .getValue(["users"])
+    .filter((user) => `${user.name} ${user.surname}`.includes(filter.fulltext))
+})
+
+export default API

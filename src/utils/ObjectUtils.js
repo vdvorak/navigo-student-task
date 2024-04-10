@@ -1,20 +1,31 @@
 import Validator from "./Validator"
 
 /**
+ * Generator for id sequences
+ * @returns {number}
+ */
+export function* createIdsSeq() {
+  let id = 1
+  while (true) {
+    yield id++
+  }
+}
+
+/**
  * Function to get object property value by path.
  * @param {import("../typedef").PropertyPath} path
  * @param {object} data
  */
 export function getPropertyValue(path, data) {
-    Validator.checkPath(path)
+  Validator.checkPath(path)
 
-    return path.reduce((dataObject, currentKey) => {
-        if (canContinueAtPath(dataObject, currentKey)) {
-            return dataObject[currentKey]
-        }
+  return path.reduce((dataObject, currentKey) => {
+    if (canContinueAtPath(dataObject, currentKey)) {
+      return dataObject[currentKey]
+    }
 
-        return dataObject
-    }, data)
+    return dataObject
+  }, data)
 }
 
 /**
@@ -24,19 +35,19 @@ export function getPropertyValue(path, data) {
  * @param {object} data
  */
 export function setPropertyValue(path, value, data) {
-    const propertyName = path.at(-1)
-    let entry = data
+  const propertyName = path.at(-1)
+  let entry = data
 
-    if (path.length > 1) {
-        const entryPath = path.slice(0, path.length - 1)
-        entry = getPropertyValue(entryPath, data)
-    }
+  if (path.length > 1) {
+    const entryPath = path.slice(0, path.length - 1)
+    entry = getPropertyValue(entryPath, data)
+  }
 
-    const prevValue = structuredClone(entry[propertyName])
+  const prevValue = structuredClone(entry[propertyName])
 
-    if (!isEqual(value, prevValue)) {
-        entry[propertyName] = value
-    }
+  if (!isEqual(value, prevValue)) {
+    entry[propertyName] = value
+  }
 }
 
 /**
@@ -45,7 +56,11 @@ export function setPropertyValue(path, value, data) {
  * @param {object} dataObject
  */
 export function canContinueAtPath(dataObject, propertyKey) {
-    return typeof dataObject === 'object' && dataObject !== null && propertyKey in dataObject
+  return (
+    typeof dataObject === "object" &&
+    dataObject !== null &&
+    propertyKey in dataObject
+  )
 }
 
 /**
@@ -54,9 +69,9 @@ export function canContinueAtPath(dataObject, propertyKey) {
  * * @param {any} value2
  */
 export function isEqual(value1, value2) {
-    if(typeof dataObject === 'object'){
-        return JSON.stringify(value1) === JSON.stringify(value2)
-    } 
+  if (typeof dataObject === "object") {
+    return JSON.stringify(value1) === JSON.stringify(value2)
+  }
 
-    return value1 === value2
+  return value1 === value2
 }
