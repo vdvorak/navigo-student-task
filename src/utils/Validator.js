@@ -9,7 +9,7 @@ export default class Validator {
    */
   static checkPath(path) {
     Validator.nonEmptyArray(path)
-    path.forEach((key) => Validator.isOneOfType(key, new Set([Number, String])))
+    path.forEach(key => Validator.isOneOfType(key, new Set([Number, String])))
   }
 
   /**
@@ -32,9 +32,7 @@ export default class Validator {
    */
   static isNotSet(object, message = undefined) {
     if (object !== null && object !== undefined) {
-      throw new Error(
-        message || "Object should be null/undefined but it is set to value"
-      )
+      throw new Error(message || "Object should be null/undefined but it is set to value")
     }
   }
 
@@ -89,9 +87,7 @@ export default class Validator {
     if (!object.constructor in klasses) {
       throw new Error(
         message ||
-          `Expected object is one of types [${Array.from(
-            klasses.values()
-          )}] but got ${object.constructor.name}`
+          `Expected object is one of types [${Array.from(klasses.values())}] but got ${object.constructor.name}`
       )
     }
   }
@@ -109,10 +105,7 @@ export default class Validator {
     }
 
     if (func.length !== arity) {
-      throw new Error(
-        message ||
-          `Expected function with arity ${arity} but got ${func.length}`
-      )
+      throw new Error(message || `Expected function with arity ${arity} but got ${func.length}`)
     }
   }
 
@@ -124,20 +117,14 @@ export default class Validator {
    * @param {string} message - Optional error message
    * @returns {void}
    */
-  static isFunctionWithArityBetween(
-    func,
-    arityMin,
-    arityMax,
-    message = undefined
-  ) {
+  static isFunctionWithArityBetween(func, arityMin, arityMax, message = undefined) {
     if (typeof func !== "function") {
       throw new Error(`Expected function but got ${typeof func}`)
     }
 
     if (func.length < arityMin || func.length > arityMax) {
       throw new Error(
-        message ||
-          `Expected function with arity between ${arityMin} and ${arityMax} but got ${func.length}`
+        message || `Expected function with arity between ${arityMin} and ${arityMax} but got ${func.length}`
       )
     }
   }
@@ -153,10 +140,7 @@ export default class Validator {
     this.isA(array, Array)
 
     if (array.length !== length) {
-      throw new Error(
-        message ||
-          `Expected array with length ${length} but got ${array.length}`
-      )
+      throw new Error(message || `Expected array with length ${length} but got ${array.length}`)
     }
   }
 
@@ -171,9 +155,7 @@ export default class Validator {
     this.isA(str, String)
 
     if (str.length !== length) {
-      throw new Error(
-        message || `Expected string with length ${length} but got ${str.length}`
-      )
+      throw new Error(message || `Expected string with length ${length} but got ${str.length}`)
     }
   }
 
@@ -189,10 +171,7 @@ export default class Validator {
     this.isA(ref, Number)
 
     if (number <= ref) {
-      throw new Error(
-        message ||
-          `Expected positive number greather than ${ref} but got ${number}`
-      )
+      throw new Error(message || `Expected positive number greather than ${ref} but got ${number}`)
     }
   }
 
@@ -208,10 +187,7 @@ export default class Validator {
     this.isA(ref, Number)
 
     if (number >= ref) {
-      throw new Error(
-        message ||
-          `Expected positive number lesser than ${ref} but got ${number}`
-      )
+      throw new Error(message || `Expected positive number lesser than ${ref} but got ${number}`)
     }
   }
 
@@ -238,9 +214,7 @@ export default class Validator {
    */
   static equals(value, ref, message = undefined) {
     if (value !== ref) {
-      throw new Error(
-        message || `Expected same values but got '${value}' and '${ref}'`
-      )
+      throw new Error(message || `Expected same values but got '${value}' and '${ref}'`)
     }
   }
 
@@ -269,20 +243,13 @@ export default class Validator {
 
     array.forEach((item, index) => {
       if (item === null || item === undefined) {
-        throw new Error(
-          message ||
-            `Found null/undefined item on index ${index} in array [${array.join(
-              ", "
-            )}]`
-        )
+        throw new Error(message || `Found null/undefined item on index ${index} in array [${array.join(", ")}]`)
       }
 
       if (item.constructor !== String) {
         throw new Error(
           message ||
-            `Expected string but got ${
-              object.constructor.name
-            } on index ${index} in array [${array.join(", ")}]`
+            `Expected string but got ${object.constructor.name} on index ${index} in array [${array.join(", ")}]`
         )
       }
     })
@@ -299,10 +266,7 @@ export default class Validator {
     this.isA(options, Array)
 
     if (options.indexOf(value) == -1) {
-      throw new Error(
-        message ||
-          `Value '${value}' is not among allowed values ${options.join(", ")}`
-      )
+      throw new Error(message || `Value '${value}' is not among allowed values ${options.join(", ")}`)
     }
   }
 
@@ -321,14 +285,14 @@ export default class Validator {
 
   /**
    * Assures that object does not have a key.
-   * @param {object} map - Tested object
+   * @param {Map} map - Tested object
    * @param {object} key - Expected key that should not be found.
    * @param {string} message - Optional error message
    * @returns {void}
    */
   static notContained(map, key, message = undefined) {
-    if (key in map) {
-      throw new Error(message || `Object ${key} is already in map`)
+    if (map.has(key)) {
+      throw new Error(message || `Key ${key} is already in map`)
     }
   }
 
@@ -374,9 +338,7 @@ export default class Validator {
     this.isA(regexp, RegExp)
 
     if (!regexp.test(str)) {
-      throw new Error(
-        message || `String "${str}" does not match pattern "${regexp}"`
-      )
+      throw new Error(message || `String "${str}" does not match pattern "${regexp}"`)
     }
   }
 }

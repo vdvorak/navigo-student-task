@@ -1,45 +1,43 @@
-import { autorun, makeAutoObservable, observable, toJS } from "mobx"
+import { makeAutoObservable, observable, toJS } from "mobx"
 import { getPropertyValue, isEqual, setPropertyValue } from "../utils/ObjectUtils"
-
 
 export class MobxStore {
   constructor(data) {
     /**
      * @type {boolean}
      * @private
-   */
+     */
     this._loaded = false
 
     /**
-  * @type {boolean}
-  * @private
-*/
+     * @type {boolean}
+     * @private
+     */
     this._dirty = false
 
     /**
- * @type {boolean}
- * @private
-*/
+     * @type {boolean}
+     * @private
+     */
     this._isDirty = false
 
     /**
      * @type {object}
      * @private
-   */
+     */
     this._data = structuredClone(data)
 
     /**
-      * @type {object}
-      * @private
-    */
+     * @type {object}
+     * @private
+     */
     this._defaultData = structuredClone(data)
 
     makeAutoObservable(this, { _data: observable, _loaded: observable, _dirty: observable })
 
     setTimeout(() => {
       this._loaded = true
-    }, 600);
-
+    }, 600)
   }
 
   /**
@@ -50,15 +48,13 @@ export class MobxStore {
     return getPropertyValue(path, this._data)
   }
 
-
   /**
-* Method to get property default value.
-* @param {import("../typedef").PropertyPath} path
-*/
+   * Method to get property default value.
+   * @param {import("../typedef").PropertyPath} path
+   */
   getDefaultValue(path) {
     return getPropertyValue(path, this._defaultData)
   }
-
 
   /**
    * Method to set property value.
@@ -79,10 +75,10 @@ export class MobxStore {
   }
 
   /**
-    * Method to check if value of property is not same as default value.
-    * @param {import("../typedef").PropertyPath} path
-    * @returns {boolean}
-    */
+   * Method to check if value of property is not same as default value.
+   * @param {import("../typedef").PropertyPath} path
+   * @returns {boolean}
+   */
   isChanged(path) {
     const value = this.getValue(path)
     const defaultValue = this.getDefaultValue(path)

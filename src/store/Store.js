@@ -1,8 +1,4 @@
-import {
-  getPropertyValue,
-  isEqual,
-  setPropertyValue,
-} from "../utils/ObjectUtils"
+import { getPropertyValue, isEqual, setPropertyValue } from "../utils/ObjectUtils"
 import Validator from "../utils/Validator"
 
 export class Store {
@@ -49,6 +45,13 @@ export class Store {
    */
   setValue(path, value) {
     setPropertyValue(path, value, this._data)
+  }
+
+  /**
+   * Method mark current state as default.
+   */
+  markCurrentStateAsDefault() {
+    this._defaultData = structuredClone(this._data)
   }
 
   /**

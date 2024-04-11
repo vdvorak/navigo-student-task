@@ -1,79 +1,50 @@
 import { useEffect, useState } from "react"
 import logo from "./assets/logo.svg"
 import { Observer } from "mobx-react"
-import apiExec from "./Api"
+import apiExec from "./Api/Api"
 
 function reload(fulltext, onDone) {
-  apiExec("users/list", { fulltext }, (res) => {
+  apiExec("users/list", { fulltext }, res => {
     onDone(res)
   })
 }
 
 function App() {
-  const [users, setUsers] = useState([])
-  const [loaded, setLoaded] = useState(false)
-  const [fulltext, setFulltext] = useState("")
+  const [userData, setData] = useState(true)
   useEffect(() => {
-    reload(fulltext, (data) => {
-      setUsers(data)
-      setLoaded(true)
-    })
+    apiExec("user/upsert", { name: "Vitek", surname: "Dvorak", hourlyRate: 500 }, data =>
+      apiExec("user/get", data, user => setData(user))
+    )
   }, [])
+
   return (
-    <Observer>
-      {() => (
-        <>
-          <div>
-            <a href="https://navigo3.com/cs/" target="_blank">
-              <img src={logo} className="logo" alt="Navigo3 logo" />
-            </a>
-          </div>
-          <input
-            placeholder="search..."
-            type="text"
-            onChange={(e) => {
-              setFulltext(e.target.value)
-              reload(fulltext, (data) => {
-                setUsers(data)
-                setLoaded(true)
-              })
-            }}
-          />
-          <br />
-          <br />
-          {!loaded && <div>Loading...</div>}
+    <>
+      <div>
+        <a href="https://navigo3.com/cs/" target="_blank">
+          <img src={logo} className="logo" alt="Navigo3 logo" />
+        </a>
+      </div>
+
+      {!userData && <div>Loading...</div>}
+      {userData && (
+        <div>
+          <div>{userData.name}</div>
+          <div>{userData.surname}</div>
+          <div>{userData.email}</div>
+          <div>{userData.hourlyRate}</div>
           <button
-            onClick={(e) => {
-              setLoaded(false)
-              apiExec(
-                "user/upsert",
-                { name: "Vitek", surname: "Dvorak" },
-                (id) => {
-                  reload(fulltext, (data) => {
-                    setUsers(data)
-                    setLoaded(true)
-                  })
-                }
+            onClick={e => {
+              e.preventDefault()
+              apiExec("user/upsert", { ...userData, hourlyRate: userData.hourlyRate + 300 }, data =>
+                apiExec("user/get", data, setData)
               )
             }}
           >
-            Add user
+            Upgrade
           </button>
-          <table>
-            <tr>
-              <th>name</th>
-              <th>surname</th>
-            </tr>
-            {users.map((user) => (
-              <tr>
-                <td>{user.name}</td>
-                <td>{user.surname}</td>
-              </tr>
-            ))}
-          </table>
-        </>
+        </div>
       )}
-    </Observer>
+    </>
   )
 }
 
