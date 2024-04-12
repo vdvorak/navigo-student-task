@@ -1,5 +1,5 @@
+import Cop from "../utils/Cop"
 import { getPropertyValue, isEqual, setPropertyValue } from "../utils/ObjectUtils"
-import Validator from "../utils/Validator"
 
 export class Store {
   /**
@@ -7,7 +7,7 @@ export class Store {
    * @param {object} data
    */
   constructor(data) {
-    Validator.isA(data, Object)
+    Cop.isA(data, Object)
 
     /**
      * @type {object}

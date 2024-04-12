@@ -1,6 +1,6 @@
 import { Store } from "../store/Store"
+import Cop from "../utils/Cop"
 import { createIdsSeq } from "../utils/ObjectUtils"
-import Validator from "../utils/Validator"
 
 export class Database {
   constructor(data) {
@@ -23,7 +23,7 @@ export class Database {
    * @returns {Generator}
    */
   initializeIdSequence(name) {
-    Validator.notContained(this._idSequences, name)
+    Cop.notContained(this._idSequences, name)
     this._idSequences.set(name, createIdsSeq())
   }
 
@@ -33,7 +33,7 @@ export class Database {
    * @returns {number}
    */
   getNextId(name) {
-    Validator.contained(this._idSequences, name)
+    Cop.contained(this._idSequences, name)
     return this._idSequences.get(name).next()
   }
 

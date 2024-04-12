@@ -1,4 +1,4 @@
-import Validator from "./Validator"
+import Cop from "./Cop"
 
 /**
  * Generator for id sequences
@@ -17,7 +17,7 @@ export function* createIdsSeq() {
  * @param {object} data
  */
 export function getPropertyValue(path, data) {
-  Validator.checkPath(path)
+  Cop.checkPath(path)
 
   return path.reduce((dataObject, currentKey) => {
     if (canContinueAtPath(dataObject, currentKey)) {
@@ -35,6 +35,7 @@ export function getPropertyValue(path, data) {
  * @param {object} data
  */
 export function setPropertyValue(path, value, data) {
+  Cop.checkPath(path)
   const propertyName = path.at(-1)
   let entry = data
 
@@ -56,11 +57,7 @@ export function setPropertyValue(path, value, data) {
  * @param {object} dataObject
  */
 export function canContinueAtPath(dataObject, propertyKey) {
-  return (
-    typeof dataObject === "object" &&
-    dataObject !== null &&
-    propertyKey in dataObject
-  )
+  return typeof dataObject === "object" && dataObject !== null && propertyKey in dataObject
 }
 
 /**
