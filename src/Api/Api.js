@@ -1,7 +1,8 @@
 import { IdParam, UserData, UsersFilter, UsersList } from "./ApiDef"
-import Validator from "../utils/Validator"
 import Endpoint from "./Endpoint"
 import database from "./Database"
+import { SEVERITY_ERROR, Validator } from "./Validator"
+import Cop from "../utils/Cop"
 
 class Api {
   _methods = new Map()
@@ -24,20 +25,27 @@ class Api {
    * @param {object} inputData - Data used as input for called API method.
    */
   execute(method, inputData) {
+    Cop.isSet(method)
+    Cop.isSet(inputData)
+    Cop.contained(this._methods, method)
+
     const apiMethod = this._methods.get(method)
     this._validateStructDef(inputData, apiMethod.endpoint.inputType)
-    const [validate, exec] = apiMethod.impl(inputData)
+    const validator = new Validator()
 
     return this._run(method, inputData, (resolve, reject) => {
-      const errors = validate()
-      if (errors.length > 0) {
-        reject(errors)
+      const result = apiMethod.impl(inputData, validator)
+      const validationData = validator.getValidationData()
+      const hasAnyValidationError =
+        validationData.values.flat().filter(validation => validation.severity === SEVERITY_ERROR).length > 0
+      /* TODO */
+      this._validateStructDef(result, apiMethod.endpoint.outputType)
+      resolve({ output: result, validation: validationData })
+
+      if (hasAnyValidationError) {
+        reject()
       } else {
-        database.transaction(() => {
-          const result = exec()
-          this._validateStructDef(result, apiMethod.endpoint.outputType)
-          resolve(result)
-        })
+        resolve({ output: result, validation: validationData })
       }
     })
   }
@@ -61,17 +69,12 @@ class Api {
    * @param {object} inputData - Data used as input for called API method.
    * @param {function(resolve:function, reject:function)} promiseHandler - Data used as input for called API method.
    */
-  _run(method, inputData, promiseHandler) {
-    Validator.isSet(method)
-    Validator.contained(this._methods, method)
-    Validator.isSet(inputData)
-
-    const apiMethod = this._methods.get(method)
-    this._validateStructDef(inputData, apiMethod.endpoint.inputType)
-
+  _run(promiseHandler) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        promiseHandler(resolve, reject)
+        database.transaction(() => {
+          promiseHandler(resolve, reject)
+        })
       }, 300)
     })
   }
@@ -99,7 +102,7 @@ class Api {
 
     const missingArray = Array.from(missing)
 
-    Validator.arrayOfSize(
+    Cop.arrayOfSize(
       missingArray,
       0,
       `Could not deserialize class ${structDef.className} because some of required properties are not set [${missingArray}].`
@@ -109,66 +112,39 @@ class Api {
 
 const api = new Api()
 
-api.register(new Endpoint("user/get", IdParam, UserData), data => {
-  function validate() {
-    return []
-  }
-  function execute() {
-    const user = database.getValue(["users"]).find(user => user.id == data.id)
-    if (!user) {
-      throw `User with id ${data.id} does not exist.`
-    }
-
-    return user
+api.register(new Endpoint("user/get", IdParam, UserData), (data, /** @type {Validator} */ validator) => {
+  const user = database.getValue(["users"]).find(user => user.id == data.id)
+  if (!user) {
+    throw `User with id ${data.id} does not exist.`
   }
 
-  return [validate, execute]
+  return user
 })
 
-api.register(new Endpoint("user/upsert", UserData, IdParam), data => {
-  function validate() {
-    const errors = []
-    if (!data.name) {
-      errors.push("Field name cannot be blank.")
-    }
+api.register(new Endpoint("user/upsert", UserData, IdParam), (data, /** @type {Validator} */ validator) => {
+  validator.checkNotBlank(["name"], data.name)
+  validator.checkNotBlank(["surname"], data.surname)
 
-    if (!data.surname) {
-      errors.push("Field surname cannot be blank.")
-    }
-    return errors
+  const user = structuredClone(data)
+
+  if (!user.id) {
+    user.id = database.getNextId("users")
   }
 
-  function execute() {
-    const user = structuredClone(data)
+  const users = database.getValue(["users"])
+  users.push(user)
 
-    if (!user.id) {
-      user.id = database.getNextId("users")
-    }
+  database.setValue(["users"], users)
 
-    const users = database.getValue(["users"])
-    users.push(user)
-
-    database.setValue(["users"], users)
-
-    return { id: user.id }
-  }
-
-  return [validate, execute]
+  return { id: user.id }
 })
 
-api.register(new Endpoint("users/list", UsersFilter, UsersList), filter => {
-  function validate() {
-    return []
+api.register(new Endpoint("users/list", UsersFilter, UsersList), (filter, /** @type {Validator} */ validator) => {
+  return {
+    items: database
+      .getValue(["users"])
+      .filter(user => !filter.fulltext || `${user.name} ${user.surname}`.includes(filter.fulltext))
   }
-  function execute() {
-    return {
-      items: database
-        .getValue(["users"])
-        .filter(user => !filter.fulltext || `${user.name} ${user.surname}`.includes(filter.fulltext))
-    }
-  }
-
-  return [validate, execute]
 })
 
 /**
