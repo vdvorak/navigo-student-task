@@ -75,7 +75,7 @@ export class Validator {
    * @param {string} message - Optional error message
    * @returns {void}
    */
-  checkNotSet(path, path, object, message = undefined) {
+  checkNotSet(path, object, message = undefined) {
     if (object !== null && object !== undefined) {
       this.addError(path, message ?? "Value should be null/undefined but it is set to value")
     }

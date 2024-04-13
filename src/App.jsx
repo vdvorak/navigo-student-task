@@ -12,7 +12,7 @@ function reload(fulltext, onDone) {
 function App() {
   const [userData, setData] = useState(true)
   useEffect(() => {
-    apiExec("user/upsert", { name: "Vitek", surname: "Dvorak", hourlyRate: 500 }, data =>
+    apiExec("user/upsert", { name: "", surname: "Dvorak", hourlyRate: 500 }, data =>
       apiExec("user/get", data, user => setData(user))
     )
   }, [])

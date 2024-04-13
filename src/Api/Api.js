@@ -31,36 +31,21 @@ class Api {
 
     const apiMethod = this._methods.get(method)
     this._validateStructDef(inputData, apiMethod.endpoint.inputType)
+    const [validate, execute] = apiMethod.impl(inputData)
     const validator = new Validator()
+    validate(validator)
+    const validationData = validator.getValidationData()
 
-    return this._run(method, inputData, (resolve, reject) => {
-      const result = apiMethod.impl(inputData, validator)
-      const validationData = validator.getValidationData()
-      const hasAnyValidationError =
-        validationData.values.flat().filter(validation => validation.severity === SEVERITY_ERROR).length > 0
-      /* TODO */
-      this._validateStructDef(result, apiMethod.endpoint.outputType)
-      resolve({ output: result, validation: validationData })
+    return this._run((resolve, reject) => {
+      const hasAnyValidationError = [] // validationData.values.flat().filter(validation => validation.severity === SEVERITY_ERROR).length > 0
 
       if (hasAnyValidationError) {
-        reject()
+        reject({ output: null, validation: validationData })
       } else {
+        const result = execute(inputData)
+        this._validateStructDef(result, apiMethod.endpoint.outputType)
         resolve({ output: result, validation: validationData })
       }
-    })
-  }
-
-  /**
-   * Method for making api requests.
-   * @param {string} apiMethod - Name of API method to call.
-   * @param {object} inputData - Data used as input for called API method.
-   */
-  validate(method, inputData) {
-    const [validate, _] = apiMethod.impl(inputData)
-
-    return this._run(method, inputData, resolve => {
-      const errors = validate()
-      resolve(errors)
     })
   }
 
@@ -112,39 +97,54 @@ class Api {
 
 const api = new Api()
 
-api.register(new Endpoint("user/get", IdParam, UserData), (data, /** @type {Validator} */ validator) => {
-  const user = database.getValue(["users"]).find(user => user.id == data.id)
-  if (!user) {
-    throw `User with id ${data.id} does not exist.`
+api.register(new Endpoint("user/get", IdParam, UserData), data => {
+  let user
+  function validate(/** @type {Validator} */ validator) {
+    user = database.getValue(["users"]).find(user => user.id == data.id)
+    validator.checkSet(user, `User with id ${data.id} does not exist.`)
+  }
+  function execute() {
+    return user
   }
 
-  return user
+  return [validate, execute]
 })
 
-api.register(new Endpoint("user/upsert", UserData, IdParam), (data, /** @type {Validator} */ validator) => {
-  validator.checkNotBlank(["name"], data.name)
-  validator.checkNotBlank(["surname"], data.surname)
-
-  const user = structuredClone(data)
-
-  if (!user.id) {
-    user.id = database.getNextId("users")
+api.register(new Endpoint("user/upsert", UserData, IdParam), data => {
+  function validate(/** @type {Validator} */ validator) {
+    validator.checkNotBlank(["name"], data.name)
+    validator.checkNotBlank(["surname"], data.surname)
   }
 
-  const users = database.getValue(["users"])
-  users.push(user)
+  function execute() {
+    const user = structuredClone(data)
 
-  database.setValue(["users"], users)
+    if (!user.id) {
+      user.id = database.getNextId("users")
+    }
 
-  return { id: user.id }
+    const users = database.getValue(["users"])
+    users.push(user)
+
+    database.setValue(["users"], users)
+
+    return { id: user.id }
+  }
+
+  return [validate, execute]
 })
 
-api.register(new Endpoint("users/list", UsersFilter, UsersList), (filter, /** @type {Validator} */ validator) => {
-  return {
-    items: database
-      .getValue(["users"])
-      .filter(user => !filter.fulltext || `${user.name} ${user.surname}`.includes(filter.fulltext))
+api.register(new Endpoint("users/list", UsersFilter, UsersList), filter => {
+  function validate(/** @type {Validator} */ validator) {}
+  function execute() {
+    return {
+      items: database
+        .getValue(["users"])
+        .filter(user => !filter.fulltext || `${user.name} ${user.surname}`.includes(filter.fulltext))
+    }
   }
+
+  return [validate, execute]
 })
 
 /**
